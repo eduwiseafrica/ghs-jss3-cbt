@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grace Heritage Schools — JSS3 CBT</title>
+<style>
+  :root{
+    --brand:#0b5d3b; --brand-dark:#073d27; --accent:#e8b400;
+    --bg:#f4f6f5; --card:#ffffff; --text:#16221c; --muted:#5b6b62;
+    --danger:#c0392b; --ok:#1e8449; --border:#dfe6e2;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1512; --card:#161f1a; --text:#eef3f0; --muted:#a3b3ab; --border:#28362f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1512; --card:#161f1a; --text:#eef3f0; --muted:#a3b3ab; --border:#28362f;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); min-height:100%; line-height:1.45;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px;}
+  header.top{
+    position:sticky; top:0; top:env(safe-area-inset-top,0px); z-index:10;
+    background:var(--brand); color:#fff; padding:14px 16px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  header.top .school{display:flex;flex-direction:column;}
+  header.top .school b{font-size:1.05rem;letter-spacing:.3px;}
+  header.top .school span{font-size:.72rem;color:#d9ecdf;}
+  .timer{
+    background:var(--brand-dark); border:2px solid var(--accent); color:#fff;
+    padding:6px 12px; border-radius:8px; font-weight:700; font-variant-numeric:tabular-nums;
+    font-size:1.05rem; min-width:78px; text-align:center;
+  }
+  .timer.low{background:var(--danger); border-color:#fff;}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:18px; margin:16px 0; box-shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  h1{font-size:1.3rem; margin:.2em 0;}
+  h2{font-size:1.05rem; margin:.2em 0 .6em;}
+  p.muted{color:var(--muted); font-size:.92rem;}
+  .subject-row{display:flex; flex-direction:column; gap:12px;}
+  .subject-card{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    border:1px solid var(--border); border-radius:12px; padding:14px 16px; background:var(--card);
+  }
+  .subject-card b{font-size:1rem;}
+  .status{font-size:.82rem; color:var(--muted);}
+  .status.done{color:var(--ok); font-weight:600;}
+  button{
+    font:inherit; cursor:pointer; border:none; border-radius:10px; padding:10px 18px;
+    background:var(--brand); color:#fff; font-weight:600; transition:opacity .15s;
+  }
+  button:disabled{background:#9aa8a0; cursor:not-allowed;}
+  button.secondary{background:transparent; color:var(--brand); border:1.5px solid var(--brand);}
+  button.wide{width:100%; padding:13px; font-size:1rem;}
+  input[type=text]{
+    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px;
+    background:var(--card); color:var(--text); font-size:1rem; margin-top:6px;
+  }
+  label{font-size:.85rem; color:var(--muted); display:block; margin-top:10px;}
+  .qnum{color:var(--muted); font-size:.82rem; margin-bottom:4px;}
+  .qtext{font-size:1.02rem; margin:0 0 12px; font-weight:600;}
+  .opt{
+    display:flex; align-items:flex-start; gap:10px; border:1px solid var(--border);
+    border-radius:10px; padding:10px 12px; margin-bottom:9px; cursor:pointer; background:var(--bg);
+  }
+  .opt.selected{border-color:var(--brand); background:rgba(11,93,59,.10);}
+  .opt input{margin-top:3px;}
+  .navrow{display:flex; justify-content:space-between; gap:10px; margin-top:16px;}
+  .progressbar{height:8px; background:var(--border); border-radius:6px; overflow:hidden; margin:10px 0 4px;}
+  .progressbar > div{height:100%; background:var(--brand); transition:width .2s;}
+  .jumpgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(34px,1fr)); gap:6px; margin:10px 0 4px;}
+  .jumpgrid button{
+    padding:0; height:34px; background:var(--card); color:var(--text); border:1px solid var(--border);
+    font-size:.8rem; font-weight:600;
+  }
+  .jumpgrid button.answered{background:rgba(11,93,59,.15); border-color:var(--brand);}
+  .jumpgrid button.current{outline:2px solid var(--accent); outline-offset:1px;}
+  .score-block{border:1px solid var(--border); border-radius:12px; padding:16px; margin:12px 0;}
+  .score-block h3{margin:.1em 0 .3em;}
+  .big{font-size:2rem; font-weight:800; color:var(--brand);}
+  footer.brand{
+    text-align:center; color:var(--muted); font-size:.78rem; margin-top:26px;
+  }
+  .hidden{display:none !important;}
+  .overlay-msg{
+    text-align:center; padding:40px 10px;
+  }
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    padding-top:calc(20px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  }
+  .modal-box{
+    background:var(--card); color:var(--text); border-radius:14px; padding:20px;
+    max-width:420px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.3);
+  }
+  .modal-box p{margin:0 0 16px; font-size:1rem; line-height:1.5;}
+  .modal-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .modal-actions button{min-width:90px;}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="school">
+    <b>GRACE HERITAGE SCHOOLS</b>
+    <span>Powered by EDUWISE AFRICA</span>
+  </div>
+  <div id="timerBox" class="timer hidden">20:00</div>
+</header>
+
+<div class="wrap">
+
+  <!-- HOME / SUBJECT SELECTION -->
+  <div id="screen-home">
+    <div class="card">
+      <h1>JSS3 Computer-Based Test</h1>
+      <p class="muted">Enter your details, then start each subject. The 20-minute timer for a subject begins only when you press its Start button. You must complete <b>both</b> subjects before your result is shown.</p>
+      <label>Student's Full Name</label>
+      <input type="text" id="studentName" placeholder="e.g. Chidinma Okafor">
+      <label>Class / Arm</label>
+      <input type="text" id="studentClass" placeholder="e.g. JSS3A">
+    </div>
+
+    <div class="card">
+      <h2>Subjects</h2>
+      <div class="subject-row">
+        <div class="subject-card">
+          <div>
+            <b>English Language</b><br>
+            <span class="status" id="statusEnglish">50 questions · 20 minutes</span>
+          </div>
+          <button id="btnStartEnglish">Start</button>
+        </div>
+        <div class="subject-card">
+          <div>
+            <b>Civic Education</b><br>
+            <span class="status" id="statusCivic">50 questions · 20 minutes</span>
+          </div>
+          <button id="btnStartCivic">Start</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="resultsGate">
+      <h2>Results</h2>
+      <p class="muted" id="gateMsg">Complete both English Language and Civic Education to unlock your result.</p>
+      <button class="wide" id="btnViewResults" disabled>View Result</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN (shared by both subjects) -->
+  <div id="screen-quiz" class="hidden">
+    <div class="card">
+      <h2 id="quizSubjectTitle">Subject</h2>
+      <div class="progressbar"><div id="progressFill" style="width:0%"></div></div>
+      <p class="muted" id="progressText">Question 1 of 50</p>
+    </div>
+
+    <div class="card">
+      <div class="qnum" id="qnum">Question 1</div>
+      <div class="qtext" id="qtext"></div>
+      <div id="optionsBox"></div>
+      <div class="navrow">
+        <button class="secondary" id="btnPrev">Previous</button>
+        <button id="btnNext">Next</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="muted">Jump to a question (green = answered):</p>
+      <div class="jumpgrid" id="jumpgrid"></div>
+      <button class="wide" id="btnSubmitSubject">Submit this subject</button>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screen-results" class="hidden">
+    <div class="card">
+      <h1>Your Result</h1>
+      <p class="muted" id="resultStudentLine"></p>
+    </div>
+    <div class="score-block">
+      <h3>English Language</h3>
+      <div class="big" id="scoreEnglish">0 / 50</div>
+      <p class="muted" id="pctEnglish"></p>
+    </div>
+    <div class="score-block">
+      <h3>Civic Education</h3>
+      <div class="big" id="scoreCivic">0 / 50</div>
+      <p class="muted" id="pctCivic"></p>
+    </div>
+    <div class="score-block">
+      <h3>Overall</h3>
+      <div class="big" id="scoreTotal">0 / 100</div>
+      <p class="muted" id="pctTotal"></p>
+    </div>
+    <button class="wide secondary" id="btnRestart">Start a new test (clears this attempt)</button>
+  </div>
+
+</div>
+
+<footer class="brand">Grace Heritage Schools · CBT powered by Eduwise Africa</footer>
+
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <p id="modalMessage"></p>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+/* ============ QUESTION BANKS ============ */
+const englishQuestions = [
+// --- Comprehension (based on the passage below) ---
+{passage:true},
+{q:"Where did Tayo live?", options:["Lagos","Ikot-Ekpene","Kano","Enugu"], correct:1},
+{q:"What did Tayo do every morning before school?", options:["Played football","Helped his father on the farm","Watched television","Visited his friends"], correct:1},
+{q:"Which crops are mentioned in the passage?", options:["Rice and beans","Yam and cassava","Maize and millet","Cocoa and palm oil"], correct:1},
+{q:"Where did Tayo read his textbooks in the evening?", options:["In his bedroom","In the classroom","Under the mango tree","In the library"], correct:2},
+{q:"Why did Tayo's classmates tease him?", options:["Because he was rich","Because he spent so much time farming","Because he was lazy","Because he failed his exams"], correct:1},
+{q:"What did Tayo believe were the keys to success?", options:["Luck and money","Hard work and discipline","Talent alone","Cheating in exams"], correct:1},
+{q:"How did Tayo perform in the Junior Secondary School examination?", options:["He failed","He scored average marks","He scored the highest marks in the school","He did not sit for the exam"], correct:2},
+{q:"How did Tayo's parents react to his result?", options:["They were angry","They wept with joy","They were indifferent","They scolded him"], correct:1},
+{q:"What did the local education board give Tayo?", options:["A trophy","A new farm","A scholarship","A job"], correct:2},
+{q:"What is the main lesson of the passage?", options:["Farming is more important than school","Hard work and determination lead to success","Teasing is harmless","Village life is difficult"], correct:1},
+
+// --- Phrases: Noun Phrase (5) ---
+{q:"What type of phrase is underlined? \u201cThe tall, handsome man greeted us warmly.\u201d (underlined: <u>The tall, handsome man</u>)", options:["Noun phrase","Verb phrase","Adjectival phrase","Adverbial phrase"], correct:0},
+{q:"What type of phrase is underlined? \u201cMy youngest sister won the essay competition.\u201d (underlined: <u>My youngest sister</u>)", options:["Adverbial phrase","Noun phrase","Verb phrase","Adjectival phrase"], correct:1},
+{q:"What type of phrase is underlined? \u201cA large crowd gathered at the market square.\u201d (underlined: <u>A large crowd</u>)", options:["Adjectival phrase","Verb phrase","Adverbial phrase","Noun phrase"], correct:3},
+{q:"What type of phrase is underlined? \u201cThe old wooden chair was broken.\u201d (underlined: <u>The old wooden chair</u>)", options:["Noun phrase","Adverbial phrase","Verb phrase","Adjectival phrase"], correct:0},
+{q:"What type of phrase is underlined? \u201cOur new class teacher is very strict.\u201d (underlined: <u>Our new class teacher</u>)", options:["Verb phrase","Noun phrase","Adverbial phrase","Adjectival phrase"], correct:1},
+
+// --- Phrases: Adverbial Phrase (5) ---
+{q:"What type of phrase is underlined? \u201cShe sang in a very sweet voice.\u201d (underlined: <u>in a very sweet voice</u>)", options:["Noun phrase","Adjectival phrase","Adverbial phrase","Verb phrase"], correct:2},
+{q:"What type of phrase is underlined? \u201cThe boys played happily in the school field.\u201d (underlined: <u>in the school field</u>)", options:["Adverbial phrase","Noun phrase","Adjectival phrase","Verb phrase"], correct:0},
+{q:"What type of phrase is underlined? \u201cHe arrived very early this morning.\u201d (underlined: <u>very early this morning</u>)", options:["Adjectival phrase","Adverbial phrase","Noun phrase","Verb phrase"], correct:1},
+{q:"What type of phrase is underlined? \u201cThey finished the assignment without any help.\u201d (underlined: <u>without any help</u>)", options:["Verb phrase","Noun phrase","Adjectival phrase","Adverbial phrase"], correct:3},
+{q:"What type of phrase is underlined? \u201cThe farmer worked from morning till night.\u201d (underlined: <u>from morning till night</u>)", options:["Adverbial phrase","Noun phrase","Verb phrase","Adjectival phrase"], correct:0},
+
+// --- Phrases: Adjectival Phrase (5) ---
+{q:"What type of phrase is underlined? \u201cThe girl with the red bag is my cousin.\u201d (underlined: <u>with the red bag</u>)", options:["Noun phrase","Adjectival phrase","Adverbial phrase","Verb phrase"], correct:1},
+{q:"What type of phrase is underlined? \u201cA man of great wisdom advised the king.\u201d (underlined: <u>of great wisdom</u>)", options:["Adjectival phrase","Verb phrase","Noun phrase","Adverbial phrase"], correct:0},
+{q:"What type of phrase is underlined? \u201cThe food, hot and spicy, pleased everyone.\u201d (underlined: <u>hot and spicy</u>)", options:["Adverbial phrase","Noun phrase","Adjectival phrase","Verb phrase"], correct:2},
+{q:"What type of phrase is underlined? \u201cThe house behind the church belongs to my uncle.\u201d (underlined: <u>behind the church</u>)", options:["Noun phrase","Verb phrase","Adverbial phrase","Adjectival phrase"], correct:3},
+{q:"What type of phrase is underlined? \u201cA student full of confidence entered the hall.\u201d (underlined: <u>full of confidence</u>)", options:["Adjectival phrase","Adverbial phrase","Noun phrase","Verb phrase"], correct:0},
+
+// --- Fill in the gaps (25) ---
+{q:"Ade is good ____ Mathematics.", options:["in","at","on","for"], correct:1},
+{q:"She has been living here ____ 2015.", options:["for","since","from","at"], correct:1},
+{q:"Neither the teacher ____ the students were late.", options:["or","nor","and","but"], correct:1},
+{q:"The keys are ____ the table.", options:["on","in","at","under"], correct:0},
+{q:"He is one of the ____ students in the class.", options:["best","good","better","goodest"], correct:0},
+{q:"By this time tomorrow, we ____ our exams.", options:["will finish","will have finished","finished","are finishing"], correct:1},
+{q:"If I ____ you, I would apologize.", options:["am","was","were","be"], correct:2},
+{q:"The children ____ playing in the field now.", options:["is","am","are","was"], correct:2},
+{q:"She is taller ____ her brother.", options:["than","then","as","from"], correct:0},
+{q:"I have ____ finished my homework.", options:["already","yet","still","since"], correct:0},
+{q:"He ran ____ fast that he won the race.", options:["so","such","too","very"], correct:0},
+{q:"The teacher, as ____ as the students, was happy.", options:["as","so","too","also"], correct:0},
+{q:"Osaze is fond ____ singing.", options:["of","with","for","in"], correct:0},
+{q:"We must abide ____ the school rules.", options:["by","to","with","in"], correct:0},
+{q:"The examination will hold ____ Monday.", options:["in","on","at","by"], correct:1},
+{q:"Everyone ____ present at the meeting.", options:["were","was","are","have"], correct:1},
+{q:"She is interested ____ reading novels.", options:["in","on","at","for"], correct:0},
+{q:"My uncle, together with his family, ____ visiting us.", options:["are","is","were","have"], correct:1},
+{q:"The students ____ their assignment before the teacher arrived.", options:["finish","finished","had finished","finishing"], correct:2},
+{q:"He is the boy ____ pen was stolen.", options:["who","whom","whose","which"], correct:2},
+{q:"Hardly ____ the bell rung when the students rushed out.", options:["had","has","did","was"], correct:0},
+{q:"Each of the girls ____ given a prize.", options:["were","was","are","have"], correct:1},
+{q:"She would have passed if she ____ harder.", options:["studies","studied","had studied","study"], correct:2},
+{q:"The two friends congratulated ____ on their success.", options:["themselves","each other","himself","yourselves"], correct:1},
+{q:"It is high time we ____ our habits.", options:["change","changed","changes","changing"], correct:1}
+];
+
+const englishPassage = "Tayo lived in a small village called Ikot-Ekpene with his parents and three younger sisters. Every morning before school, he helped his father on the farm, watering the yam seedlings and clearing weeds from the cassava beds. In the evening, after his chores, he would sit under the mango tree with an old lantern, reading his textbooks until his eyes grew heavy with sleep.\n\nHis classmates often teased him for spending so much time on the farm, saying he would never do well in his examinations. But Tayo believed that hard work and discipline were the keys to success. He never allowed the teasing to discourage him.\n\nWhen the Junior Secondary School examination results were released, Tayo scored the highest marks in the entire school. His teachers were proud of him, and his parents wept with joy. The local education board later awarded him a scholarship to continue his studies.\n\nTayo's story taught everyone in Ikot-Ekpene an important lesson: that patience, hard work, and determination can turn even the most difficult situations into great achievements.";
+
+const civicQuestions = [
+{q:"What is a constitution?", options:["A set of laws guiding a country's government","A book of history","A national anthem","A list of political parties"], correct:0},
+{q:"Constitutional development refers to:", options:["The growth and changes in a country's system of laws over time","Building of schools","Trade between nations","Population growth"], correct:0},
+{q:"The Nigerian Constitution is important because it:", options:["Regulates government and protects citizens' rights","Increases taxes","Controls the weather","Selects football teams"], correct:0},
+{q:"Which of these best describes the purpose of a constitution?", options:["To create confusion in government","To provide a framework for governance","To favour only the rich","To abolish elections"], correct:1},
+{q:"A country without a constitution would likely experience:", options:["Orderly government","Chaos and lack of clear rules","Better rule of law","More citizens' rights"], correct:1},
+
+{q:"The first major stage in Nigeria's constitutional development began during:", options:["The colonial era","The Stone Age","World War II only","The 21st century"], correct:0},
+{q:"Nigerian constitutional development can be divided into:", options:["Colonial and post-independence stages","Only one stage","Religious stages","Agricultural stages"], correct:0},
+{q:"Before 1922, Nigeria was governed mainly by:", options:["Written constitutions","The Governor's personal rule, with no formal constitution","The 1999 Constitution","An elected parliament"], correct:1},
+{q:"The colonial constitutions were introduced mainly by:", options:["Nigerian traditional rulers","The British colonial government","The United Nations","Nigerian political parties"], correct:1},
+{q:"The trend in Nigeria's constitutional development has generally moved towards:", options:["Less citizen participation","Greater self-government and democracy","More colonial control","No government at all"], correct:1},
+
+{q:"The Clifford Constitution was introduced in the year:", options:["1914","1922","1946","1954"], correct:1},
+{q:"The Clifford Constitution was named after:", options:["Hugh Clifford, the colonial Governor","A Nigerian king","A British Prime Minister","A Nigerian nationalist"], correct:0},
+{q:"A major feature of the Clifford Constitution was:", options:["Universal adult suffrage","Introduction of the elective principle for Lagos and Calabar","Full independence for Nigeria","A federal system of three regions"], correct:1},
+{q:"Under the Clifford Constitution, the Legislative Council had:", options:["No Nigerian members","A few elected and nominated Nigerian members","Only military members","Only women members"], correct:1},
+{q:"One weakness of the Clifford Constitution was that:", options:["It gave full power to Nigerians","Real power still remained with the Governor","It ended colonial rule","It created 36 states"], correct:1},
+
+{q:"The Richards Constitution came into effect in:", options:["1922","1946","1951","1960"], correct:1},
+{q:"The Richards Constitution was introduced by Governor:", options:["Hugh Clifford","Arthur Richards","John Macpherson","Oliver Lyttleton"], correct:1},
+{q:"A key feature of the Richards Constitution was:", options:["Division of Nigeria into three regions (North, East, West)","Creation of 36 states","Full independence","Abolition of the Legislative Council"], correct:0},
+{q:"The Richards Constitution is criticised mainly because:", options:["It was introduced without adequate consultation with Nigerian leaders","It gave Nigeria full independence","It removed all regions","It was too democratic"], correct:0},
+{q:"The Richards Constitution helped to introduce the idea of:", options:["Regionalism in Nigeria","Military rule","A one-party state","Nigeria's independence"], correct:0},
+
+{q:"The Macpherson Constitution was introduced in:", options:["1946","1951","1954","1963"], correct:1},
+{q:"The Macpherson Constitution was named after Governor:", options:["Arthur Richards","John Macpherson","Hugh Clifford","James Robertson"], correct:1},
+{q:"A notable feature of the Macpherson Constitution was:", options:["Greater participation of Nigerians in government","Total colonial control","Abolishing the regions","Ending the Legislative Council"], correct:0},
+{q:"The Macpherson Constitution introduced:", options:["A federal system with a strong central government only","Regional legislatures alongside a central legislature","Complete independence","A one-party government"], correct:1},
+{q:"A problem with the Macpherson Constitution was that:", options:["It completely removed regional and ethnic tension","It led to disagreements among the regions over representation","It gave Nigerians no role at all","It was never implemented"], correct:1},
+
+{q:"The Lyttleton Constitution was introduced in:", options:["1951","1954","1957","1960"], correct:1},
+{q:"The Lyttleton Constitution was named after:", options:["Oliver Lyttleton, the Secretary of State for the Colonies","A Nigerian nationalist","Queen Elizabeth II","John Macpherson"], correct:0},
+{q:"A major achievement of the Lyttleton Constitution was that it:", options:["Established a true federal system for Nigeria","Ended all regions","Removed the Legislative Council","Declared Nigeria a republic"], correct:0},
+{q:"Under the Lyttleton Constitution, Nigeria was divided into:", options:["Two regions","Three regions with a federal centre","Thirty-six states","Twelve states"], correct:1},
+{q:"The Lyttleton Constitution allowed the regions to:", options:["Have no power at all","Have their own legislatures and some self-government","Become fully independent nations","Be ruled by military governors"], correct:1},
+
+{q:"Nigeria gained independence under the:", options:["1954 Constitution","Independence Constitution of 1960","1979 Constitution","Richards Constitution"], correct:1},
+{q:"The Independence Constitution of 1960 made Nigeria:", options:["A republic","A self-governing nation under the British Monarch (a Dominion)","A colony again","A one-party state"], correct:1},
+{q:"Under the 1960 Constitution, the Head of State was:", options:["The Nigerian President","The British Monarch, represented by a Governor-General","A military Head of State","There was no Head of State"], correct:1},
+{q:"The Prime Minister of Nigeria under the 1960 Constitution was:", options:["Nnamdi Azikiwe","Abubakar Tafawa Balewa","Obafemi Awolowo","Ahmadu Bello"], correct:1},
+
+{q:"Nigeria became a republic under the:", options:["1954 Constitution","1960 Constitution","Republican Constitution of 1963","1979 Constitution"], correct:2},
+{q:"A major change brought by the 1963 Republican Constitution was that:", options:["Nigeria remained a British colony","Nigeria replaced the British Monarch with a Nigerian President as Head of State","Nigeria returned to colonial rule","It ended democracy"], correct:1},
+{q:"The first President of Nigeria under the 1963 Republican Constitution was:", options:["Abubakar Tafawa Balewa","Nnamdi Azikiwe","Yakubu Gowon","Shehu Shagari"], correct:1},
+{q:"Under the 1963 Republican Constitution, Nigeria remained a member of:", options:["The United Nations only","The Commonwealth of Nations","No international body","The African Union only"], correct:1},
+
+{q:"The 1979 Constitution introduced which system of government to Nigeria?", options:["Parliamentary system","Presidential system","Monarchy","Military rule"], correct:1},
+{q:"The 1979 Constitution was prepared mainly to:", options:["Return Nigeria to civilian, democratic rule after military rule","Extend military rule","Abolish elections","Reduce the number of states"], correct:0},
+{q:"Under the 1979 Constitution, the Head of State and Government was:", options:["The Prime Minister","The President, elected by the people","The Queen","A military Head of State"], correct:1},
+{q:"A feature of the 1979 Constitution was:", options:["Separation of powers among the executive, legislature, and judiciary","Combining all powers in one person","Having no judiciary","Having no elections"], correct:0},
+
+{q:"The current Constitution of the Federal Republic of Nigeria is the:", options:["1963 Constitution","1979 Constitution","1999 Constitution, as amended","1960 Constitution"], correct:2},
+{q:"The 1999 Constitution came into effect when Nigeria returned to:", options:["Military rule","Civilian democratic rule","Colonial rule","Monarchy"], correct:1},
+{q:"The 1999 Constitution guarantees Nigerian citizens:", options:["No rights at all","Fundamental human rights","Rights only for government officials","Rights only during elections"], correct:1},
+
+{q:"A constitution made by the military without full participation of citizens is called:", options:["A civilian constitution","A military-imposed constitution","A democratic constitution","An unwritten constitution"], correct:1},
+{q:"Unlike a military constitution-making process, a civilian process usually involves:", options:["Only soldiers","Wide consultation with citizens through elected representatives","Secret decisions by one person","Foreign governments only"], correct:1},
+{q:"Constitutionalism means:", options:["Government operating strictly according to the constitution and the rule of law","Government ignoring the constitution","Rule by one powerful individual","Absence of any government"], correct:0},
+{q:"The rule of law is important in a democratic society because it:", options:["Ensures everyone, including leaders, is subject to the law","Allows leaders to act above the law","Removes citizens' rights","Encourages lawlessness"], correct:0},
+{q:"Citizens should appreciate the Nigerian Constitution because it:", options:["Provides a framework for peaceful governance and responsible citizenship","Has no relevance to daily life","Only benefits politicians","Prevents development"], correct:0}
+];
+
+/* ============ STATE ============ */
+const DURATION = 20*60; // 20 minutes in seconds
+const STORAGE_KEY = "ghs_cbt_attempt_v1";
+
+let state = loadState() || {
+  student:{name:"", cls:""},
+  english:{started:false, submitted:false, answers:{}, score:null, timeLeft:DURATION, deadline:null},
+  civic:{started:false, submitted:false, answers:{}, score:null, timeLeft:DURATION, deadline:null}
+};
+
+let currentSubject = null; // "english" | "civic"
+let currentIndex = 0;
+let timerInterval = null;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+function getBank(subject){ return subject === "english" ? englishQuestions : civicQuestions; }
+
+/* Build a flat list of answerable question indices (skips the passage marker) */
+function answerableIndices(subject){
+  const bank = getBank(subject);
+  const list = [];
+  bank.forEach((q,i)=>{ if(!q.passage) list.push(i); });
+  return list;
+}
+
+/* ============ CUSTOM MODAL (replaces window.confirm/alert) ============
+   Native confirm()/alert() are unreliable on many phones: they are blocked
+   or silently ignored inside sandboxed iframes (including this page when
+   viewed as a published preview) and inside in-app browsers such as
+   WhatsApp/Telegram/Instagram webviews. A blocked confirm() can throw or
+   return immediately without showing anything, which made "Submit" appear
+   to do nothing. This modal is built from plain DOM elements, so it always
+   works regardless of where the page is opened. */
+function showModal(message, buttons){
+  return new Promise(resolve=>{
+    const overlay = document.getElementById("modalOverlay");
+    document.getElementById("modalMessage").textContent = message;
+    const actions = document.getElementById("modalActions");
+    actions.innerHTML = "";
+    buttons.forEach(b=>{
+      const btn = document.createElement("button");
+      btn.textContent = b.label;
+      if(!b.primary) btn.className = "secondary";
+      btn.addEventListener("click", ()=>{
+        overlay.classList.add("hidden");
+        resolve(b.value);
+      });
+      actions.appendChild(btn);
+    });
+    overlay.classList.remove("hidden");
+  });
+}
+function showConfirm(message){
+  return showModal(message, [
+    {label:"Cancel", value:false, primary:false},
+    {label:"Submit", value:true, primary:true}
+  ]);
+}
+function showNotice(message){
+  return showModal(message, [{label:"OK", value:true, primary:true}]);
+}
+
+/* ============ DOM refs ============ */
+const screenHome = document.getElementById("screen-home");
+const screenQuiz = document.getElementById("screen-quiz");
+const screenResults = document.getElementById("screen-results");
+const timerBox = document.getElementById("timerBox");
+
+document.getElementById("studentName").addEventListener("input", e=>{ state.student.name = e.target.value; saveState(); });
+document.getElementById("studentClass").addEventListener("input", e=>{ state.student.cls = e.target.value; saveState(); });
+document.getElementById("studentName").value = state.student.name || "";
+document.getElementById("studentClass").value = state.student.cls || "";
+
+document.getElementById("btnStartEnglish").addEventListener("click", ()=>startSubject("english"));
+document.getElementById("btnStartCivic").addEventListener("click", ()=>startSubject("civic"));
+document.getElementById("btnViewResults").addEventListener("click", showResults);
+document.getElementById("btnRestart").addEventListener("click", restartAll);
+document.getElementById("btnPrev").addEventListener("click", ()=>navQuestion(-1));
+document.getElementById("btnNext").addEventListener("click", ()=>navQuestion(1));
+document.getElementById("btnSubmitSubject").addEventListener("click", ()=>confirmSubmit(currentSubject));
+
+/* ============ HOME rendering ============ */
+function renderHome(){
+  screenHome.classList.remove("hidden");
+  screenQuiz.classList.add("hidden");
+  screenResults.classList.add("hidden");
+  timerBox.classList.add("hidden");
+
+  const eDone = state.english.submitted;
+  const cDone = state.civic.submitted;
+
+  document.getElementById("statusEnglish").textContent = eDone
+    ? "Completed — " + Object.keys(state.english.answers).length + "/50 answered"
+    : (state.english.started ? "In progress" : "50 questions · 20 minutes");
+  document.getElementById("statusEnglish").className = "status" + (eDone ? " done":"");
+  document.getElementById("btnStartEnglish").textContent = eDone ? "Completed" : (state.english.started ? "Resume" : "Start");
+  document.getElementById("btnStartEnglish").disabled = eDone;
+
+  document.getElementById("statusCivic").textContent = cDone
+    ? "Completed — " + Object.keys(state.civic.answers).length + "/50 answered"
+    : (state.civic.started ? "In progress" : "50 questions · 20 minutes");
+  document.getElementById("statusCivic").className = "status" + (cDone ? " done":"");
+  document.getElementById("btnStartCivic").textContent = cDone ? "Completed" : (state.civic.started ? "Resume" : "Start");
+  document.getElementById("btnStartCivic").disabled = cDone;
+
+  const bothDone = eDone && cDone;
+  document.getElementById("btnViewResults").disabled = !bothDone;
+  document.getElementById("gateMsg").textContent = bothDone
+    ? "Both subjects are complete. You may view your result."
+    : "Complete both English Language and Civic Education to unlock your result.";
+}
+
+/* ============ START / RESUME a subject ============ */
+function startSubject(subject){
+  if(state[subject].submitted) return;
+  if(!state[subject].started){
+    state[subject].started = true;
+    state[subject].deadline = Date.now() + DURATION*1000;
+    saveState();
+  }
+  currentSubject = subject;
+  currentIndex = 0;
+  screenHome.classList.add("hidden");
+  screenResults.classList.add("hidden");
+  screenQuiz.classList.remove("hidden");
+  timerBox.classList.remove("hidden");
+  document.getElementById("quizSubjectTitle").textContent =
+    subject === "english" ? "English Language" : "Civic Education";
+  buildJumpGrid(subject);
+  renderQuestion();
+  startTimer(subject);
+}
+
+function startTimer(subject){
+  clearInterval(timerInterval);
+  tickTimer(subject);
+  timerInterval = setInterval(()=>tickTimer(subject), 1000);
+}
+
+function tickTimer(subject){
+  const s = state[subject];
+  const remaining = Math.max(0, Math.round((s.deadline - Date.now())/1000));
+  const m = String(Math.floor(remaining/60)).padStart(2,"0");
+  const sec = String(remaining%60).padStart(2,"0");
+  timerBox.textContent = m+":"+sec;
+  timerBox.classList.toggle("low", remaining <= 60);
+  if(remaining <= 0){
+    clearInterval(timerInterval);
+    submitSubject(subject, true);
+  }
+}
+
+/* ============ QUESTION RENDERING ============ */
+function renderQuestion(){
+  const bank = getBank(currentSubject);
+  const q = bank[currentIndex];
+  const answerList = answerableIndices(currentSubject);
+  const posInAnswerable = answerList.indexOf(currentIndex) + 1;
+
+  document.getElementById("progressText").textContent =
+    "Question " + posInAnswerable + " of " + answerList.length;
+  document.getElementById("progressFill").style.width =
+    Math.round((posInAnswerable/answerList.length)*100) + "%";
+
+  const box = document.getElementById("optionsBox");
+  box.innerHTML = "";
+
+  if(q.passage){
+    document.getElementById("qnum").textContent = "Reading Passage";
+    document.getElementById("qtext").innerHTML =
+      "<div style='font-weight:400;white-space:pre-line;font-size:.98rem;'>"+englishPassage+"</div>"+
+      "<p class='muted' style='margin-top:10px;'>Read the passage carefully, then click Next to answer the comprehension questions.</p>";
+    document.getElementById("btnPrev").disabled = (currentIndex===0);
+    document.getElementById("btnNext").textContent = "Next";
+    return;
+  }
+
+  document.getElementById("qnum").textContent = "Question " + posInAnswerable;
+  document.getElementById("qtext").innerHTML = q.q;
+
+  const saved = state[currentSubject].answers[currentIndex];
+  q.options.forEach((opt, i)=>{
+    const id = "opt_"+currentSubject+"_"+currentIndex+"_"+i;
+    const div = document.createElement("label");
+    div.className = "opt" + (saved===i ? " selected":"");
+    div.setAttribute("for", id);
+    div.innerHTML = '<input type="radio" name="q_'+currentIndex+'" id="'+id+'" '+(saved===i?"checked":"")+'> <span>'+opt+'</span>';
+    div.addEventListener("click", ()=>selectOption(currentIndex, i));
+    box.appendChild(div);
+  });
+
+  document.getElementById("btnPrev").disabled = (currentIndex===0);
+  document.getElementById("btnNext").textContent =
+    (currentIndex === bank.length-1) ? "Finish" : "Next";
+}
+
+function selectOption(qIndex, optIndex){
+  state[currentSubject].answers[qIndex] = optIndex;
+  saveState();
+  renderQuestion();
+  updateJumpGrid();
+}
+
+function navQuestion(dir){
+  const bank = getBank(currentSubject);
+  const next = currentIndex + dir;
+  if(next < 0) return;
+  if(next >= bank.length){
+    confirmSubmit(currentSubject);
+    return;
+  }
+  currentIndex = next;
+  renderQuestion();
+  updateJumpGrid();
+}
+
+function buildJumpGrid(subject){
+  const grid = document.getElementById("jumpgrid");
+  grid.innerHTML = "";
+  const bank = getBank(subject);
+  const answerList = answerableIndices(subject);
+  answerList.forEach((idx, pos)=>{
+    const b = document.createElement("button");
+    b.textContent = pos+1;
+    b.addEventListener("click", ()=>{ currentIndex = idx; renderQuestion(); updateJumpGrid(); });
+    b.dataset.idx = idx;
+    grid.appendChild(b);
+  });
+  updateJumpGrid();
+}
+
+function updateJumpGrid(){
+  const grid = document.getElementById("jumpgrid");
+  [...grid.children].forEach(b=>{
+    const idx = Number(b.dataset.idx);
+    b.classList.toggle("answered", state[currentSubject].answers[idx] !== undefined);
+    b.classList.toggle("current", idx === currentIndex);
+  });
+}
+
+/* ============ SUBMIT ============ */
+async function confirmSubmit(subject){
+  const answerList = answerableIndices(subject);
+  const answeredCount = answerList.filter(i => state[subject].answers[i] !== undefined).length;
+  const unanswered = answerList.length - answeredCount;
+  let msg = "Submit " + (subject==="english"?"English Language":"Civic Education") + " now? ";
+  msg += unanswered > 0 ? ("You still have " + unanswered + " unanswered question(s).") : "All questions answered.";
+  const ok = await showConfirm(msg);
+  if(ok){
+    submitSubject(subject, false);
+  }
+}
+
+async function submitSubject(subject, autoSubmitted){
+  clearInterval(timerInterval);
+  const bank = getBank(subject);
+  const answers = state[subject].answers;
+  let score = 0;
+  bank.forEach((q, i)=>{
+    if(q.passage) return;
+    if(answers[i] === q.correct) score++;
+  });
+  state[subject].submitted = true;
+  state[subject].score = score;
+  saveState();
+  renderHome();
+  if(autoSubmitted){
+    await showNotice("Time is up! Your " + (subject==="english"?"English Language":"Civic Education") + " answers have been submitted automatically.");
+  }
+}
+
+/* ============ RESULTS ============ */
+function showResults(){
+  if(!(state.english.submitted && state.civic.submitted)) return;
+  screenHome.classList.add("hidden");
+  screenQuiz.classList.add("hidden");
+  screenResults.classList.remove("hidden");
+  timerBox.classList.add("hidden");
+
+  const name = state.student.name || "Student";
+  const cls = state.student.cls || "";
+  document.getElementById("resultStudentLine").textContent = name + (cls ? (" · " + cls) : "");
+
+  const eScore = state.english.score, cScore = state.civic.score;
+  document.getElementById("scoreEnglish").textContent = eScore + " / 50";
+  document.getElementById("pctEnglish").textContent = Math.round((eScore/50)*100) + "%";
+  document.getElementById("scoreCivic").textContent = cScore + " / 50";
+  document.getElementById("pctCivic").textContent = Math.round((cScore/50)*100) + "%";
+  const total = eScore + cScore;
+  document.getElementById("scoreTotal").textContent = total + " / 100";
+  document.getElementById("pctTotal").textContent = Math.round((total/100)*100) + "%";
+}
+
+async function restartAll(){
+  const ok = await showConfirm("This will clear this attempt on this device and start a fresh test. Continue?");
+  if(!ok) return;
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  state = {
+    student:{name:"", cls:""},
+    english:{started:false, submitted:false, answers:{}, score:null, timeLeft:DURATION, deadline:null},
+    civic:{started:false, submitted:false, answers:{}, score:null, timeLeft:DURATION, deadline:null}
+  };
+  document.getElementById("studentName").value = "";
+  document.getElementById("studentClass").value = "";
+  renderHome();
+}
+
+/* ============ INIT ============ */
+(function init(){
+  // Resume an in-progress subject automatically if the page was reloaded mid-quiz
+  if(state.english.started && !state.english.submitted){
+    startSubject("english");
+  } else if(state.civic.started && !state.civic.submitted){
+    startSubject("civic");
+  } else {
+    renderHome();
+  }
+})();
+</script>
+</body>
+</html>
